@@ -63,7 +63,11 @@ public class SpringAnnotationParser {
   private static final String COMPONENTSCANS_TYPE = "org.springframework.context.annotation.ComponentScans";
   
   private static final String CONFIGURATION_TYPE = "org.springframework.context.annotation.Configuration";
+  
+  private static final String COMPONENT_TYPE = "org.springframework.stereotype.Component";
     
+  private static final String AUTOWIRED_TYPE = "org.springframework.beans.factory.annotation.Autowired";
+  
   private static final String DEFAULT_ANNOTATION_VALUE = "value";
 
   /**
@@ -81,13 +85,19 @@ public class SpringAnnotationParser {
     model.addDependencyNames(getImportsTypes(te));
     String[] configurationBeanNames  = AnnotationValueExtractor
         .getAnnotationValue(te, CONFIGURATION_TYPE, DEFAULT_ANNOTATION_VALUE);
+    String[] componentBeanNames  = AnnotationValueExtractor
+        .getAnnotationValue(te, COMPONENT_TYPE, DEFAULT_ANNOTATION_VALUE);
     if (configurationBeanNames != null) {
       for (Element enclosed : te.getEnclosedElements()) {
         handleEnclosedElements(messager, model, enclosed);
       }
     } else {
-      messager.printMessage(javax.tools.Diagnostic.Kind.ERROR,
-          "@Verified annotation must only be used on @Configuration classes", te);
+      if (componentBeanNames != null) {
+        model.addDefinition(pareseModelFromComponent(te, model, componentBeanNames));
+      } else {
+         messager.printMessage(javax.tools.Diagnostic.Kind.ERROR,
+            "@Verified annotation must only be used on @Configuration or @Component classes", te);
+      }
     }
     
     for (String expectedBean : verified.expectedBeans()) {
@@ -222,6 +232,46 @@ public class SpringAnnotationParser {
     }
   }
 
+  private static InstanceModel pareseModelFromComponent(TypeElement te, DefinitionModel dm, String[] names) {
+    List<InstanceDependencyModel> dependencies = new ArrayList<>();
+    List<ExecutableElement> constructors = new ArrayList<>();
+    for (Element e : te.getEnclosedElements()) {
+      if (e instanceof ExecutableElement) {
+        ExecutableElement ex = (ExecutableElement) e;
+        if ("<init>".equals(ex.getSimpleName().toString())) {
+          constructors.add(ex); 
+        }
+      }
+    }
+    
+   
+    ExecutableElement chosenConstructor = null;
+    if (constructors.size() == 1) {
+      chosenConstructor = constructors.get(0);
+    } else {
+      List<ExecutableElement> autowireConstructors = new ArrayList<>();
+      for (ExecutableElement ex : constructors) {
+        if (AnnotationValueExtractor.getAnnotationValue(ex, AUTOWIRED_TYPE, "") != null) {
+          autowireConstructors.add(ex);
+        }
+      }
+      if (autowireConstructors.size() == 1) {
+        chosenConstructor = autowireConstructors.get(0);
+      }
+    }
+    
+    //TODO: all the error cases...
+    
+    InstanceModel model = new InstanceModel(names[0],
+        dm.getIdentity(), 
+        chosenConstructor, 
+        te.getQualifiedName().toString(),
+        dependencies, 
+        new ArrayList<>());
+    return model;
+  }
+  
+  
   private static void errorIfInvalidClass(TypeElement te, Messager messager) {
     if (te.getEnclosingElement().getKind() != ElementKind.PACKAGE) {
       messager.printMessage(javax.tools.Diagnostic.Kind.ERROR,

@@ -48,8 +48,20 @@ public class AptAssignabilityUtils implements AssignabilityUtils {
     elementUtils = elements;
   }
   
+  /**
+   * Given two instances models, the subject and target, it is determined
+   * if the subject can be assigned to the dependency on the subject, from the
+   * target.
+   *
+   */
   public boolean isAssignableFrom(InstanceModel subject, InstanceModel target) {
-    TypeMirror subjectElementType = lookUpElement(subject).getReturnType();
+    ExecutableElement factoryOrConstructor = lookUpElement(subject);
+    TypeMirror subjectElementType = null;
+    if ("<init>".equals(factoryOrConstructor.getSimpleName().toString())) {
+      subjectElementType = factoryOrConstructor.getEnclosingElement().asType();
+    } else {
+      subjectElementType = factoryOrConstructor.getReturnType();
+    }
     int count = 0;
     while (!target.getDependencies().get(count).getIdentity().equals(subject.getIdentity())) {
       count ++;

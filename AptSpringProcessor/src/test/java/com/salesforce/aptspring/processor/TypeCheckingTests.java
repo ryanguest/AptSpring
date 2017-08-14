@@ -215,7 +215,8 @@ public class TypeCheckingTests {
             .that(Arrays.asList(definitionClassExpectingComplex, definitionClass2ComplexExpecting))
             .processedWith(new VerifiedSpringConfiguration())
             .failsToCompile()
-            .withErrorContaining("Unmatched types valueX found in test.TestClass1.valueX(...), value3 found in test.TestClass2.value3(...)")
+            .withErrorContaining("Unmatched types valueX found in test.TestClass1.valueX(...), "
+                + "value3 found in test.TestClass2.value3(...)")
             .in(definitionClassExpectingComplex)
             .onLine(13);
   }
