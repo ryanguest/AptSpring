@@ -54,6 +54,17 @@ import com.salesforce.aptspring.Verified;
 
 public class SpringAnnotationParser {
   
+  private static final List<Modifier> DISALLOWED_ON_METHOD = Collections.unmodifiableList(Arrays.asList(
+      Modifier.ABSTRACT,
+      Modifier.DEFAULT,
+      Modifier.FINAL,
+      Modifier.NATIVE,
+      Modifier.STATIC,
+      Modifier.VOLATILE
+      //Modifier.PRIVATE, //checks to see if the method is public, these checks would be redundant.
+      //Modifier.PROTECTED
+      ));
+  
   private static final String QUALIFIER_TYPE = "org.springframework.beans.factory.annotation.Qualifier";
   
   private static final String VALUE_TYPE = "org.springframework.beans.factory.annotation.Value";
@@ -73,8 +84,9 @@ public class SpringAnnotationParser {
   /**
    * Read a TypeElement to get application structure.
    * 
-   * @param te
-   *          definition type element.
+   * @param te definition type element.
+   * @param messager presents error messages for the compiler to pass to the user.
+   * @return the {@link DefinitionModel} parsed from a properly annotated {@link TypeElement}
    */
   public static DefinitionModel parseDefinition(TypeElement te, Messager messager) {  
     Verified verified = te.getAnnotation(Verified.class);
@@ -105,18 +117,6 @@ public class SpringAnnotationParser {
     }
     return model;
   }
-  
-  private static final List<Modifier> DISALLOWED_ON_METHOD = Collections.unmodifiableList(Arrays.asList(
-      Modifier.ABSTRACT,
-      Modifier.DEFAULT,
-      Modifier.FINAL,
-      Modifier.NATIVE,
-      Modifier.STATIC,
-      Modifier.VOLATILE
-      
-      //Modifier.PRIVATE, //checks to see if the method is public, these checks would be redundant.
-      //Modifier.PROTECTED
-      ));
   
   private static List<Modifier> getIllegalModifiers(Set<Modifier> existing, List<Modifier> illegal) {
     List<Modifier> modifiers = new ArrayList<>(existing);
@@ -208,7 +208,9 @@ public class SpringAnnotationParser {
               "All methods on @Configuration must have @Bean annotation", execelement);
         }
         break;
-      case FIELD: 
+      case FIELD:
+        errorNonLiteralStaticFields((VariableElement) enclosed, messager);
+        break;
       case ENUM_CONSTANT: 
         errorNonLiteralStaticFields((VariableElement) enclosed, messager);
         break;
@@ -229,6 +231,7 @@ public class SpringAnnotationParser {
         messager.printMessage(javax.tools.Diagnostic.Kind.ERROR,
             "Only @Bean methods, private static final literals, and default constructors are allowed on @Configuration classes",
             enclosed);
+        break;
     }
   }
 

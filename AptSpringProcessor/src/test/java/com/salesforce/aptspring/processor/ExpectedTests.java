@@ -38,7 +38,6 @@ import org.junit.Test;
 
 import com.google.testing.compile.JavaFileObjects;
 
-@SuppressWarnings("PMD.AvoidDuplicateLiterals")
 public class ExpectedTests {
   
   private JavaFileObject definitionClassNotExpectingValue5 = JavaFileObjects.forSourceLines(
@@ -134,7 +133,7 @@ public class ExpectedTests {
       "}");
   
   
-  JavaFileObject definitionClass2ExpectingValue5 = JavaFileObjects.forSourceLines(
+  private JavaFileObject definitionClass2ExpectingValue5 = JavaFileObjects.forSourceLines(
       "test.TestClass2",
       "package test;",
       "",
@@ -157,7 +156,7 @@ public class ExpectedTests {
       "}");
 
   
-  JavaFileObject definitionClass2MissingExpected = JavaFileObjects.forSourceLines(
+  private JavaFileObject definitionClass2MissingExpected = JavaFileObjects.forSourceLines(
       "test.TestClass2",
       "package test;",
       "",

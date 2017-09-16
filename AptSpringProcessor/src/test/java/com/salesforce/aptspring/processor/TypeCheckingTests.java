@@ -38,7 +38,6 @@ import org.junit.Test;
 
 import com.google.testing.compile.JavaFileObjects;
 
-@SuppressWarnings("PMD.AvoidDuplicateLiterals")
 public class TypeCheckingTests {
 
   private JavaFileObject definitionClassExpectingListString = JavaFileObjects.forSourceLines(
@@ -89,7 +88,7 @@ public class TypeCheckingTests {
       "",
       "}");
   
-  JavaFileObject definitionClass2ProvidesListString = JavaFileObjects.forSourceLines(
+  private JavaFileObject definitionClass2ProvidesListString = JavaFileObjects.forSourceLines(
       "test.TestClass2",
       "package test;",
       "",
@@ -141,7 +140,7 @@ public class TypeCheckingTests {
       "",
       "}");
   
-  JavaFileObject definitionClass2Complex = JavaFileObjects.forSourceLines(
+  private JavaFileObject definitionClass2Complex = JavaFileObjects.forSourceLines(
       "test.TestClass2",
       "package test;",
       "",
@@ -163,7 +162,7 @@ public class TypeCheckingTests {
       "",
       "}");
   
-  JavaFileObject definitionClass2ComplexExpecting = JavaFileObjects.forSourceLines(
+  private JavaFileObject definitionClass2ComplexExpecting = JavaFileObjects.forSourceLines(
       "test.TestClass2",
       "package test;",
       "",
@@ -215,8 +214,8 @@ public class TypeCheckingTests {
             .that(Arrays.asList(definitionClassExpectingComplex, definitionClass2ComplexExpecting))
             .processedWith(new VerifiedSpringConfiguration())
             .failsToCompile()
-            .withErrorContaining("Unmatched types valueX found in test.TestClass1.valueX(...), "
-                + "value3 found in test.TestClass2.value3(...)")
+            .withErrorContaining("Unmatched types valueX found in test.TestClass1.valueX(...),"
+                + " value3 found in test.TestClass2.value3(...)")
             .in(definitionClassExpectingComplex)
             .onLine(13);
   }

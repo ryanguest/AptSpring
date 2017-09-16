@@ -30,8 +30,8 @@ import javax.lang.model.element.Element;
 
 public abstract class BaseInstanceModel extends AbstractModel {
 
-  final String identifier;
-  final String entityType;
+  private final String identifier;
+  private final String entityType;
   
   public BaseInstanceModel(String identifier, String elementLocation, String entityType) {
     super(elementLocation);
@@ -54,6 +54,7 @@ public abstract class BaseInstanceModel extends AbstractModel {
   }
   
   public String toString() {
-    return identifier + (elementLocation != null && !"".equals(elementLocation) ? " found in " + elementLocation : "");
+    return identifier 
+        + (getElementLocation() != null && !"".equals(getElementLocation()) ? " found in " + getElementLocation() : "");
   }
 }
