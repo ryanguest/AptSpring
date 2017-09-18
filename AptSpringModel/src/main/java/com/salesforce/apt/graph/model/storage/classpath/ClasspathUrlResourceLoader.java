@@ -65,6 +65,9 @@ public class ClasspathUrlResourceLoader implements ResourceLoader {
   
   /**
    * Finds all possible resources that match the name of the DefinitionMode we wish to find.
+   * 
+   * @param name the resources to search for with in the class loader.
+   * @return the list of found resources in class loader.
    */
   public List<Resource> getEntries(String name) {
     List<Resource> output  = new ArrayList<>();

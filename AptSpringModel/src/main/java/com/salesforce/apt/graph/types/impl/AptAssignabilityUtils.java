@@ -53,6 +53,9 @@ public class AptAssignabilityUtils implements AssignabilityUtils {
    * if the subject can be assigned to the dependency on the subject, from the
    * target.
    *
+   * @param subject instance to be injected in to the target
+   * @param target instance to have the subject injected in to it.
+   * @return whether the target can be safely injected in to the correct parameter of the target.
    */
   public boolean isAssignableFrom(InstanceModel subject, InstanceModel target) {
     ExecutableElement factoryOrConstructor = lookUpElement(subject);

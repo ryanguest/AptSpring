@@ -65,6 +65,29 @@ public class ComponentTests {
       "",
       "}");
   
+  private JavaFileObject definitionClassBreaksCycle = JavaFileObjects.forSourceLines(
+      "test.TestClass1",
+      "package test;",
+      "",
+      "import org.springframework.beans.factory.annotation.Qualifier;",
+      "import org.springframework.context.annotation.Bean;",
+      "import org.springframework.context.annotation.ComponentScan;",
+      "import org.springframework.context.annotation.Configuration;",
+      "import org.springframework.context.annotation.Import;",
+      "",
+      "  @com.salesforce.aptspring.Verified",
+      "  @Configuration",
+      "  @Import(TestClass2.class)",
+      "  public class TestClass1 {",
+      "",
+      "    @Bean(name = \"value1\")",
+      "    public String value1() { return \"\";}",
+      "",
+      "    @Bean(name = \"value2\")",
+      "    public String value2(@Qualifier(\"value3\") TestClass2 y) { return \"\";}",
+      "",
+      "}");
+  
   private JavaFileObject componentClassNoDeps = JavaFileObjects.forSourceLines(
       "test.TestClass2",
       "package test;",
@@ -81,6 +104,115 @@ public class ComponentTests {
       "",
       "}");
   
+  private JavaFileObject componentClassTwoConstructorsBusted = JavaFileObjects.forSourceLines(
+      "test.TestClass2",
+      "package test;",
+      "",
+      "import org.springframework.beans.factory.annotation.Qualifier;",
+      "import org.springframework.context.annotation.Bean;",
+      "import org.springframework.stereotype.Component;",
+      "",
+      "  @com.salesforce.aptspring.Verified",
+      "  @Component(\"value3\")",
+      "  public class TestClass2 {",
+      "",
+      "    public TestClass2() { }",
+      "",
+      "    public TestClass2(String bob) { }",
+      "",
+      "",
+      "}");
+  
+  
+  private JavaFileObject componentClassTwoConstructorsNoDeps = JavaFileObjects.forSourceLines(
+      "test.TestClass2",
+      "package test;",
+      "",
+      "import org.springframework.beans.factory.annotation.Qualifier;",
+      "import org.springframework.context.annotation.Bean;",
+      "import org.springframework.stereotype.Component;",
+      "import org.springframework.beans.factory.annotation.Autowired;",
+      "",
+      "  @com.salesforce.aptspring.Verified",
+      "  @Component(\"value3\")",
+      "  public class TestClass2 {",
+      "",
+      "    @Autowired",
+      "    public TestClass2() { }",
+      "",
+      "    public TestClass2(String bob) { }",
+      "",
+      "",
+      "}");
+  
+  
+  private JavaFileObject componentClassTwoConstructorsWithMissingDeps = JavaFileObjects.forSourceLines(
+      "test.TestClass2",
+      "package test;",
+      "",
+      "import org.springframework.beans.factory.annotation.Qualifier;",
+      "import org.springframework.context.annotation.Bean;",
+      "import org.springframework.stereotype.Component;",
+      "import org.springframework.beans.factory.annotation.Autowired;",
+      "",
+      "  @com.salesforce.aptspring.Verified",
+      "  @Component(\"value3\")",
+      "  public class TestClass2 {",
+      "",
+      "    public TestClass2() { }",
+      "",
+      "    @Autowired",
+      "    public TestClass2(@Qualifier(\"bob\") String bob) { }",
+      "",
+      "",
+      "}");
+  
+  private JavaFileObject componentClassTwoConstructorsWithCircularDeps = JavaFileObjects.forSourceLines(
+      "test.TestClass2",
+      "package test;",
+      "",
+      "import org.springframework.beans.factory.annotation.Qualifier;",
+      "import org.springframework.context.annotation.Bean;",
+      "import org.springframework.stereotype.Component;",
+      "import org.springframework.beans.factory.annotation.Autowired;",
+      "",
+      "  @com.salesforce.aptspring.Verified",
+      "  @Component(\"value3\")",
+      "  public class TestClass2 {",
+      "",
+      "    public TestClass2() { }",
+      "",
+      "    @Autowired",
+      "    public TestClass2(@Qualifier(\"value1\") String bob) { }",
+      "",
+      "",
+      "}");
+  
+  private JavaFileObject componentClassBadField = JavaFileObjects.forSourceLines(
+      "test.TestClass2",
+      "package test;",
+      "",
+      "import org.springframework.beans.factory.annotation.Qualifier;",
+      "import org.springframework.context.annotation.Bean;",
+      "import org.springframework.stereotype.Component;",
+      "",
+      "  @com.salesforce.aptspring.Verified",
+      "  @Component(\"value3\")",
+      "  public class TestClass2 {",
+      "",
+      "  private static final String COOL = \"cool\";",
+      "",
+      "  private final String mode;",
+      "",
+      "  public String mode1;",
+      "",
+      "  private volatile String mode2;",
+      "",
+      "    public TestClass2() { mode = \"x\"; }",
+      "",
+      "}");
+  
+  
   @Test
   public void testComponentImport() throws IOException {
     File outputDir = Files.createTempDir();
@@ -92,5 +224,99 @@ public class ComponentTests {
             .compilesWithoutError();  
   }
   
+  @Test
+  public void testComponentImportTwoConstructorsNoAutowired() throws IOException {
+    File outputDir = Files.createTempDir();
+    System.out.println("Generating into " + outputDir.getAbsolutePath());
+
+    assertAbout(javaSources())
+            .that(Arrays.asList(definitionClass, componentClassTwoConstructorsBusted))
+            .processedWith(new VerifiedSpringConfiguration())
+            .failsToCompile()
+            .withErrorContaining("No single default constructor or single @Autowired constructor")
+            .in(componentClassTwoConstructorsBusted)
+            .onLine(9);
+  }
   
+  @Test
+  public void testComponentImportTwoConstructorsAutowiredNoDeps() throws IOException {
+    File outputDir = Files.createTempDir();
+    System.out.println("Generating into " + outputDir.getAbsolutePath());
+
+    assertAbout(javaSources())
+            .that(Arrays.asList(definitionClass, componentClassTwoConstructorsNoDeps))
+            .processedWith(new VerifiedSpringConfiguration())
+            .compilesWithoutError();
+  }
+  
+  @Test
+  public void testComponentImportTwoConstructorsAutowiredWithUnsatisfiedDeps() throws IOException {
+    File outputDir = Files.createTempDir();
+    System.out.println("Generating into " + outputDir.getAbsolutePath());
+
+    assertAbout(javaSources())
+            .that(Arrays.asList(definitionClass, componentClassTwoConstructorsWithMissingDeps))
+            .processedWith(new VerifiedSpringConfiguration())
+            .failsToCompile()
+            .withErrorContaining("Missing bean definitions for spring beans bob,"
+                + "create definitions or list them in @Verified's expected field")
+            .in(definitionClass)
+            .onLine(12)
+            .and()
+            .withErrorContaining("Missing bean definitions for spring beans bob,"
+                + "create definitions or list them in @Verified's expected field")
+            .in(componentClassTwoConstructorsWithMissingDeps)
+            .onLine(15);
+  }
+  
+  @Test
+  public void testComponentImportTwoConstructorsAutowiredWithCircularDeps() throws IOException {
+    File outputDir = Files.createTempDir();
+    System.out.println("Generating into " + outputDir.getAbsolutePath());
+    assertAbout(javaSources())
+            .that(Arrays.asList(definitionClass, componentClassTwoConstructorsWithCircularDeps))
+            .processedWith(new VerifiedSpringConfiguration())
+            .failsToCompile()
+            .withErrorContaining("Cycle in @Configuration class @Imports")
+            .in(definitionClass)
+            .onLine(15)
+            .and()
+            .withErrorContaining("Cycle in @Configuration class @Imports")
+            .in(definitionClass)
+            .onLine(18)
+            .and()
+            .withErrorContaining("Cycle in @Configuration class @Imports")
+            .in(componentClassTwoConstructorsWithCircularDeps)
+            .onLine(15);
+    
+  }
+  
+  @Test
+  public void testComponentImportTwoConstructorsAutowired() throws IOException {
+    File outputDir = Files.createTempDir();
+    System.out.println("Generating into " + outputDir.getAbsolutePath());
+    assertAbout(javaSources())
+            .that(Arrays.asList(definitionClassBreaksCycle, componentClassTwoConstructorsWithCircularDeps))
+            .processedWith(new VerifiedSpringConfiguration())
+            .compilesWithoutError();
+  }
+
+  
+  @Test
+  public void testComponentFields() throws IOException {
+    File outputDir = Files.createTempDir();
+    System.out.println("Generating into " + outputDir.getAbsolutePath());
+    assertAbout(javaSources())
+            .that(Arrays.asList(componentClassBadField))
+            .processedWith(new VerifiedSpringConfiguration())
+            .failsToCompile()
+            .withErrorContaining("@Component classes my only have static final constant fields or final private fields")
+            .in(componentClassBadField)
+            .onLine(15)
+            .and()
+            .withErrorContaining("@Component classes my only have static final constant fields or final private fields")
+            .in(componentClassBadField)
+            .onLine(15);
+  }
+
 }
