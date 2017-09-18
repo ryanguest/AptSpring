@@ -259,12 +259,12 @@ public class ComponentTests {
             .processedWith(new VerifiedSpringConfiguration())
             .failsToCompile()
             .withErrorContaining("Missing bean definitions for spring beans bob,"
-                + "create definitions or list them in @Verified's expected field")
+                + " create definitions or list them in @Verified's expected field")
             .in(definitionClass)
             .onLine(12)
             .and()
             .withErrorContaining("Missing bean definitions for spring beans bob,"
-                + "create definitions or list them in @Verified's expected field")
+                + " create definitions or list them in @Verified's expected field")
             .in(componentClassTwoConstructorsWithMissingDeps)
             .onLine(15);
   }

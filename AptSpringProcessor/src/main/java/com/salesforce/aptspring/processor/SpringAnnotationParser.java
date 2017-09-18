@@ -135,14 +135,14 @@ public class SpringAnnotationParser {
     return model;
   }
   
-  private static List<Modifier> getIllegalModifiers(Set<Modifier> existing, List<Modifier> illegal) {
+  private List<Modifier> getIllegalModifiers(Set<Modifier> existing, List<Modifier> illegal) {
     List<Modifier> modifiers = new ArrayList<>(existing);
     modifiers.removeIf(modifier -> !illegal.contains(modifier));
     modifiers.sort((m1, m2) ->  m1.name().compareTo(m2.name())); //in case someone reorders
     return modifiers;
   }
   
-  private static boolean parseBeanMethod(ExecutableElement beanMethod, String[] beanNames, Messager messager) {
+  private boolean parseBeanMethod(ExecutableElement beanMethod, String[] beanNames, Messager messager) {
     boolean valid = true;
     if (beanNames.length == 0) {
       valid = false;
@@ -346,7 +346,7 @@ public class SpringAnnotationParser {
     }
   }
   
-  private static List<String> getImportsTypes(TypeElement element) {
+  private List<String> getImportsTypes(TypeElement element) {
     final List<String> importedDefinitions = new ArrayList<>();
     for (AnnotationMirror am : element.getAnnotationMirrors()) {
       if ("org.springframework.context.annotation.Import".equals(am.getAnnotationType().toString())) {

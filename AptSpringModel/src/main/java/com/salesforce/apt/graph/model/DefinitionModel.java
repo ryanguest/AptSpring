@@ -137,13 +137,6 @@ public class DefinitionModel extends AbstractModel {
     this.expectedDefinitions.add(model);
   }
 
-  public void addDefinitions(List<ExpectedModel> models) {
-    failIfLockRead();
-    for (ExpectedModel model : models) {
-      this.addDefinition(model);
-    }
-  }
-  
   public void addDependencyNames(List<String> model) {
     failIfLockRead();
     this.dependencyNames.addAll(model);
