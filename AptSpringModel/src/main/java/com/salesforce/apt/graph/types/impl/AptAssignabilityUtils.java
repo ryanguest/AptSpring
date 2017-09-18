@@ -33,6 +33,7 @@ import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 
 import com.salesforce.apt.graph.model.InstanceModel;
+import com.salesforce.apt.graph.naming.NamingTools;
 import com.salesforce.apt.graph.types.AssignabilityUtils;
 
 /**
@@ -84,12 +85,13 @@ public class AptAssignabilityUtils implements AssignabilityUtils {
     if (target.getSourceElement().isPresent()) {
       return (ExecutableElement) target.getSourceElement().get();
     } else {
-      String removeParms = target.getElementLocation().replaceAll("\\(.*\\)", "");
-      String method = removeParms.substring(removeParms.lastIndexOf('.') + 1);
       TypeElement type = elementUtils.getTypeElement(target.getOwningDefinition());
-      return (ExecutableElement) type.getEnclosedElements().stream().filter(e -> 
-        e.getSimpleName().toString().replaceAll("\\(.*\\)", "").equals(method) 
-          && ExecutableElement.class.isAssignableFrom(e.getClass())).findFirst().get();
+      final NamingTools names = new NamingTools();
+      return type.getEnclosedElements().stream().filter(e -> 
+        names.elementToName(e).equals(target.getElementLocation()) && ExecutableElement.class.isAssignableFrom(e.getClass()))
+          .findFirst()
+          .map(e -> (ExecutableElement) e)
+          .get();
     }
   }  
   
