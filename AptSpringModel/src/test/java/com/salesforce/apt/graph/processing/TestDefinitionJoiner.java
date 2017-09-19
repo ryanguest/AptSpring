@@ -79,46 +79,6 @@ public class TestDefinitionJoiner {
   }
   
   @Test
-  @Ignore
-  public void joinerTestWithStoredDate() throws IOException {
-    DefinitionModel model1 = new DefinitionModel(TEST_DEF1);
-    model1.addDependencyNames(Arrays.asList(TEST_DEF2));
-    DefinitionModel model2 = new DefinitionModel(TEST_DEF2);
-    model2.addDependencyNames(Arrays.asList(TEST_DEF1));
-    TestErrorListener el = new TestErrorListener();
-    
-    DefinitionModelStore store = new DefinitionModelStore() {
-      Map<String, List<DefinitionModel>> models = new HashMap<>();
-      
-      @Override
-      public boolean store(DefinitionModel model) {
-        List<DefinitionModel> list = models.getOrDefault(model.getIdentity(), new ArrayList<>());
-        list.add(model);
-        models.put(model.getIdentity(), list);
-        return true;
-      }
-      
-      @Override
-      public List<DefinitionModel> lookup(String name) {
-        return models.get(name);
-      }
-    };
-
-    store.store(new DefinitionModel(TEST_DEF1));
-    store.store(new DefinitionModel(TEST_DEF2));
-    //ResourceLoader loader = x -> x.equals(TEST_DEF1) ? Arrays.asList(model1) : Arrays.asList(model2), el);
-    
-    new DefinitionJoiner().joinDefinitions(Arrays.asList(model1, model2), 
-        store, el);
-    assertThat(el.getErrors().stream().map(s -> s.toString())).containsOnly(
-          "DUPLICATED_MATCHING_DEFINITIONS on [test.Def1] caused by [test.Def1, test.Def1]",
-          "DUPLICATED_MATCHING_DEPENDENCIES on [test.Def1] caused by [test.Def2, test.Def2]",
-          "DUPLICATED_MATCHING_DEFINITIONS on [test.Def2] caused by [test.Def2, test.Def2]",
-          "DUPLICATED_MATCHING_DEPENDENCIES on [test.Def2] caused by [test.Def1, test.Def1]"
-    );
-  }
-  
-  @Test
   public void joinerMissingDepTest() {
     DefinitionModel model1 = new DefinitionModel(TEST_DEF1);
     model1.addDependencyNames(Arrays.asList(TEST_DEF2));

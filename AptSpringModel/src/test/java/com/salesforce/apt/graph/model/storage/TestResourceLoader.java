@@ -128,7 +128,6 @@ public class TestResourceLoader {
    * Doesn't appear to work in docker, will never work in windows.
    * @throws IOException if any of the setup fails
    */
-  @Ignore //TODO: breaks in drone.io.... don't have time right now to find out why
   @Test
   public void testBrokenEnvironment() throws IOException {
     File root = testFolder.newFolder();
@@ -149,7 +148,6 @@ public class TestResourceLoader {
    * Doesn't appear to work in docker, will never work in windows.
    * @throws IOException if any of the setup fails
    */
-  @Ignore//TODO: breaks in drone.io.... don't have time right now to find out why
   @Test
   public void failedStorage() throws IOException {
     File root = testFolder.newFolder();
